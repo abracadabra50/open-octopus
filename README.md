@@ -1,129 +1,97 @@
-# OctopusMenuBar - macOS App
+# 🐙 Open Octopus
 
-A modern macOS application using a **workspace + SPM package** architecture for clean separation between app shell and feature code.
+A beautiful native macOS menu bar app for [Octopus Energy](https://octopus.energy) customers.
 
-## Project Architecture
+![Open Octopus Menu Bar App](docs/menubar-screenshot.png)
 
+## Features
+
+- **Live Rate Display** - Current electricity rate with countdown to off-peak
+- **Smart Charging** - EV dispatch status with golden indicator when charging
+- **Usage Insights** - Today/yesterday consumption with sparkline visualization
+- **Rate Comparison** - Peak vs off-peak rates with savings percentage
+- **Monthly Projection** - Estimated monthly cost based on recent usage
+- **AI Assistant** - Ask questions about your energy usage (powered by Claude)
+- **Quick Actions** - One-click common queries
+
+## Installation
+
+### Requirements
+- macOS 14.0+
+- Python 3.10+
+- Octopus Energy account with API key
+
+### Setup
+
+1. **Install the Python package:**
+   ```bash
+   pip install open-octopus
+   ```
+
+2. **Set your credentials:**
+   ```bash
+   export OCTOPUS_API_KEY="your_api_key"
+   export OCTOPUS_ACCOUNT="A-XXXXXXXX"
+   export OCTOPUS_MPAN="your_mpan"           # Optional: for consumption data
+   export OCTOPUS_METER_SERIAL="your_serial" # Optional: for consumption data
+   ```
+
+3. **Build and run the macOS app:**
+   ```bash
+   git clone https://github.com/abracadabra50/open-octopus.git
+   cd open-octopus
+   xcodebuild -workspace OctopusMenuBar.xcworkspace -scheme OctopusMenuBar build
+   open ~/Library/Developer/Xcode/DerivedData/OctopusMenuBar-*/Build/Products/Debug/OctopusMenuBar.app
+   ```
+
+## CLI Tools
+
+Open Octopus also includes command-line tools:
+
+```bash
+# Check current rate
+octopus rate
+
+# View account balance
+octopus account
+
+# Get live power (if available)
+octopus power
+
+# View consumption
+octopus usage
+
+# Check dispatch status (Intelligent Octopus)
+octopus dispatch
+
+# AI assistant
+octopus-ask "What's the best time to run my dishwasher?"
 ```
-OctopusMenuBar/
-├── OctopusMenuBar.xcworkspace/              # Open this file in Xcode
-├── OctopusMenuBar.xcodeproj/                # App shell project
-├── OctopusMenuBar/                          # App target (minimal)
-│   ├── Assets.xcassets/                # App-level assets (icons, colors)
-│   ├── OctopusMenuBarApp.swift              # App entry point
-│   ├── OctopusMenuBar.entitlements          # App sandbox settings
-│   └── OctopusMenuBar.xctestplan            # Test configuration
-├── OctopusMenuBarPackage/                   # 🚀 Primary development area
-│   ├── Package.swift                   # Package configuration
-│   ├── Sources/OctopusMenuBarFeature/       # Your feature code
-│   └── Tests/OctopusMenuBarFeatureTests/    # Unit tests
-└── OctopusMenuBarUITests/                   # UI automation tests
-```
-
-## Key Architecture Points
-
-### Workspace + SPM Structure
-- **App Shell**: `OctopusMenuBar/` contains minimal app lifecycle code
-- **Feature Code**: `OctopusMenuBarPackage/Sources/OctopusMenuBarFeature/` is where most development happens
-- **Separation**: Business logic lives in the SPM package, app target just imports and displays it
-
-### Buildable Folders (Xcode 16)
-- Files added to the filesystem automatically appear in Xcode
-- No need to manually add files to project targets
-- Reduces project file conflicts in teams
-
-### App Sandbox
-The app is sandboxed by default with basic file access permissions. Modify `OctopusMenuBar.entitlements` to add capabilities as needed.
-
-## Development Notes
-
-### Code Organization
-Most development happens in `OctopusMenuBarPackage/Sources/OctopusMenuBarFeature/` - organize your code as you prefer.
-
-### Public API Requirements
-Types exposed to the app target need `public` access:
-```swift
-public struct SettingsView: View {
-    public init() {}
-    
-    public var body: some View {
-        // Your view code
-    }
-}
-```
-
-### Adding Dependencies
-Edit `OctopusMenuBarPackage/Package.swift` to add SPM dependencies:
-```swift
-dependencies: [
-    .package(url: "https://github.com/example/SomePackage", from: "1.0.0")
-],
-targets: [
-    .target(
-        name: "OctopusMenuBarFeature",
-        dependencies: ["SomePackage"]
-    ),
-]
-```
-
-### Test Structure
-- **Unit Tests**: `OctopusMenuBarPackage/Tests/OctopusMenuBarFeatureTests/` (Swift Testing framework)
-- **UI Tests**: `OctopusMenuBarUITests/` (XCUITest framework)
-- **Test Plan**: `OctopusMenuBar.xctestplan` coordinates all tests
 
 ## Configuration
 
-### XCConfig Build Settings
-Build settings are managed through **XCConfig files** in `Config/`:
-- `Config/Shared.xcconfig` - Common settings (bundle ID, versions, deployment target)
-- `Config/Debug.xcconfig` - Debug-specific settings  
-- `Config/Release.xcconfig` - Release-specific settings
-- `Config/Tests.xcconfig` - Test-specific settings
+Create `~/.octopus.env` for persistent configuration:
 
-### App Sandbox & Entitlements
-The app is sandboxed by default with basic file access. Edit `OctopusMenuBar/OctopusMenuBar.entitlements` to add capabilities:
-```xml
-<key>com.apple.security.files.user-selected.read-write</key>
-<true/>
-<key>com.apple.security.network.client</key>
-<true/>
-<!-- Add other entitlements as needed -->
+```bash
+OCTOPUS_API_KEY=sk_live_xxxxx
+OCTOPUS_ACCOUNT=A-XXXXXXXX
+OCTOPUS_MPAN=1234567890123
+OCTOPUS_METER_SERIAL=12A3456789
+ANTHROPIC_API_KEY=sk-ant-xxxxx  # For AI features
 ```
 
-## macOS-Specific Features
+## Supported Tariffs
 
-### Window Management
-Add multiple windows and settings panels:
-```swift
-@main
-struct OctopusMenuBarApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        
-        Settings {
-            SettingsView()
-        }
-    }
-}
-```
+- Intelligent Octopus Go
+- Octopus Go
+- Agile Octopus
+- Flexible Octopus
+- And more...
 
-### Asset Management
-- **App-Level Assets**: `OctopusMenuBar/Assets.xcassets/` (app icon with multiple sizes, accent color)
-- **Feature Assets**: Add `Resources/` folder to SPM package if needed
+## License
 
-### SPM Package Resources
-To include assets in your feature package:
-```swift
-.target(
-    name: "OctopusMenuBarFeature",
-    dependencies: [],
-    resources: [.process("Resources")]
-)
-```
+MIT
 
-## Notes
+## Credits
 
-### Generated with XcodeBuildMCP
-This project was scaffolded using [XcodeBuildMCP](https://github.com/cameroncooke/XcodeBuildMCP), which provides tools for AI-assisted macOS development workflows.
+Built with SwiftUI and Python. AI powered by [Claude](https://anthropic.com).
