@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from .models import (
-    Account, Consumption, Tariff, Rate, Dispatch, DispatchStatus,
-    SavingSession, LivePower, SmartDevice, MeterPoint
+    Account, Consumption, GasConsumption, Tariff, GasTariff, Rate,
+    Dispatch, DispatchStatus, SavingSession, LivePower, SmartDevice,
+    MeterPoint, GasMeterPoint
 )
 
 
@@ -36,6 +37,8 @@ class OctopusClient:
         account: str,
         mpan: Optional[str] = None,
         meter_serial: Optional[str] = None,
+        gas_mprn: Optional[str] = None,
+        gas_meter_serial: Optional[str] = None,
     ):
         """
         Initialize the Octopus Energy client.
@@ -43,13 +46,17 @@ class OctopusClient:
         Args:
             api_key: Your Octopus API key (starts with sk_live_)
             account: Your account number (e.g., A-FB05ED6C)
-            mpan: Meter Point Administration Number (for consumption data)
+            mpan: Meter Point Administration Number (for electricity consumption)
             meter_serial: Electricity meter serial number
+            gas_mprn: Meter Point Reference Number (for gas consumption)
+            gas_meter_serial: Gas meter serial number
         """
         self.api_key = api_key
         self.account = account
         self.mpan = mpan
         self.meter_serial = meter_serial
+        self.gas_mprn = gas_mprn
+        self.gas_meter_serial = gas_meter_serial
 
         self._token: Optional[str] = None
         self._token_expires: Optional[datetime] = None
@@ -204,7 +211,7 @@ class OctopusClient:
 
     async def get_daily_usage(self, days: int = 7) -> dict[str, float]:
         """
-        Get daily consumption totals.
+        Get daily electricity consumption totals.
 
         Args:
             days: Number of days to fetch
@@ -218,6 +225,149 @@ class OctopusClient:
             day = c.start.strftime("%Y-%m-%d")
             daily[day] = daily.get(day, 0) + c.kwh
         return daily
+
+    # -------------------------------------------------------------------------
+    # Gas Consumption
+    # -------------------------------------------------------------------------
+
+    async def get_gas_consumption(
+        self,
+        periods: int = 48,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None
+    ) -> list[GasConsumption]:
+        """
+        Get half-hourly gas consumption.
+
+        Note: SMETS1 meters return kWh directly, SMETS2 meters return m³
+        which is converted to kWh using a standard factor of 11.1868.
+
+        Args:
+            periods: Number of 30-minute periods (default 48 = 24 hours)
+            start: Start datetime (optional)
+            end: End datetime (optional)
+
+        Returns:
+            List of GasConsumption readings
+        """
+        if not self.gas_mprn or not self.gas_meter_serial:
+            raise ConfigurationError("gas_mprn and gas_meter_serial required for gas data")
+
+        http = await self._get_http()
+        params = {"page_size": periods}
+        if start:
+            params["period_from"] = start.isoformat()
+        if end:
+            params["period_to"] = end.isoformat()
+
+        resp = await http.get(
+            f"{REST_API_URL}/gas-meter-points/{self.gas_mprn}/meters/{self.gas_meter_serial}/consumption/",
+            params=params,
+            auth=(self.api_key, "")
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Standard gas conversion factor: m³ to kWh
+        # (volume correction × calorific value × kWh conversion)
+        M3_TO_KWH = 11.1868
+
+        results = []
+        for r in data.get("results", []):
+            consumption = r["consumption"]
+            # If value is small, it's likely m³ (SMETS2), convert to kWh
+            # SMETS1 meters report in kWh directly (larger values)
+            if consumption < 10:  # Heuristic: m³ values are typically < 10 per period
+                m3 = consumption
+                kwh = consumption * M3_TO_KWH
+            else:
+                kwh = consumption
+                m3 = None
+
+            results.append(GasConsumption(
+                start=datetime.fromisoformat(r["interval_start"].replace("Z", "+00:00")),
+                end=datetime.fromisoformat(r["interval_end"].replace("Z", "+00:00")),
+                kwh=kwh,
+                m3=m3
+            ))
+
+        return results
+
+    async def get_daily_gas_usage(self, days: int = 7) -> dict[str, float]:
+        """
+        Get daily gas consumption totals in kWh.
+
+        Args:
+            days: Number of days to fetch
+
+        Returns:
+            Dict mapping date strings to kWh totals
+        """
+        consumption = await self.get_gas_consumption(periods=days * 48)
+        daily: dict[str, float] = {}
+        for c in consumption:
+            day = c.start.strftime("%Y-%m-%d")
+            daily[day] = daily.get(day, 0) + c.kwh
+        return daily
+
+    async def get_gas_tariff(self, region: str = "J") -> Optional[GasTariff]:
+        """
+        Get current gas tariff details.
+
+        Args:
+            region: DNO region code (default J = Scotland)
+
+        Returns:
+            GasTariff with rates, or None if not found
+        """
+        data = await self._graphql(
+            """
+            query GetGasTariff($account: String!) {
+                account(accountNumber: $account) {
+                    gasAgreements(active: true) {
+                        tariff {
+                            ... on StandardTariff {
+                                displayName
+                                productCode
+                                standingCharge
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"account": self.account}
+        )
+
+        agreements = data.get("account", {}).get("gasAgreements", [])
+        if not agreements:
+            return None
+
+        tariff_data = agreements[0].get("tariff", {})
+        product_code = tariff_data.get("productCode", "")
+
+        # Fetch unit rate from REST API
+        http = await self._get_http()
+        tariff_code = f"G-1R-{product_code}-{region}"
+
+        try:
+            resp = await http.get(
+                f"{REST_API_URL}/products/{product_code}/gas-tariffs/{tariff_code}/standard-unit-rates/",
+                params={"page_size": 1},
+                auth=(self.api_key, "")
+            )
+            resp.raise_for_status()
+            rates_data = resp.json()
+            unit_rate = rates_data.get("results", [{}])[0].get("value_inc_vat", 0)
+        except httpx.HTTPError:
+            unit_rate = 0
+
+        return GasTariff(
+            name=tariff_data.get("displayName", "Unknown"),
+            product_code=product_code,
+            standing_charge=tariff_data.get("standingCharge", 0),
+            unit_rate=unit_rate
+        )
 
     # -------------------------------------------------------------------------
     # Tariff & Rates

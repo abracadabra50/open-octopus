@@ -28,7 +28,7 @@ Natural language queries:
     >>> print(response)
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .client import (
     OctopusClient,
@@ -40,7 +40,9 @@ from .client import (
 from .models import (
     Account,
     Consumption,
+    GasConsumption,
     Tariff,
+    GasTariff,
     Rate,
     Dispatch,
     DispatchStatus,
@@ -48,6 +50,7 @@ from .models import (
     LivePower,
     SmartDevice,
     MeterPoint,
+    GasMeterPoint,
 )
 
 # Optional imports for extras
@@ -69,7 +72,7 @@ __all__ = [
     "AuthenticationError",
     "APIError",
     "ConfigurationError",
-    # Models
+    # Electricity Models
     "Account",
     "Consumption",
     "Tariff",
@@ -80,6 +83,10 @@ __all__ = [
     "LivePower",
     "SmartDevice",
     "MeterPoint",
+    # Gas Models
+    "GasConsumption",
+    "GasTariff",
+    "GasMeterPoint",
     # Optional
     "OctopusAgent",
     "OctopusMenuBar",

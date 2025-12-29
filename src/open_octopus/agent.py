@@ -93,7 +93,31 @@ OCTOPUS_TOOLS = [
     },
     {
         "name": "get_tariff_info",
-        "description": "Get tariff details including name, standing charge, and unit rates",
+        "description": "Get electricity tariff details including name, standing charge, and unit rates",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "get_gas_usage",
+        "description": "Get gas consumption for recent days in kWh",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "integer",
+                    "description": "Number of days to get gas usage for (default 7)",
+                    "default": 7
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "get_gas_tariff",
+        "description": "Get gas tariff details including name, standing charge, and unit rate",
         "input_schema": {
             "type": "object",
             "properties": {},
@@ -112,6 +136,8 @@ class OctopusAgent:
         account: Optional[str] = None,
         mpan: Optional[str] = None,
         meter_serial: Optional[str] = None,
+        gas_mprn: Optional[str] = None,
+        gas_meter_serial: Optional[str] = None,
         anthropic_api_key: Optional[str] = None,
         model: str = "claude-sonnet-4-20250514"
     ):
@@ -123,6 +149,8 @@ class OctopusAgent:
             account: Account number (or OCTOPUS_ACCOUNT env var)
             mpan: MPAN (or OCTOPUS_MPAN env var)
             meter_serial: Meter serial (or OCTOPUS_METER_SERIAL env var)
+            gas_mprn: Gas MPRN (or OCTOPUS_GAS_MPRN env var)
+            gas_meter_serial: Gas meter serial (or OCTOPUS_GAS_METER_SERIAL env var)
             anthropic_api_key: Anthropic API key (or ANTHROPIC_API_KEY env var)
             model: Claude model to use
         """
@@ -130,7 +158,9 @@ class OctopusAgent:
             api_key=api_key or os.environ.get("OCTOPUS_API_KEY", ""),
             account=account or os.environ.get("OCTOPUS_ACCOUNT", ""),
             mpan=mpan or os.environ.get("OCTOPUS_MPAN"),
-            meter_serial=meter_serial or os.environ.get("OCTOPUS_METER_SERIAL")
+            meter_serial=meter_serial or os.environ.get("OCTOPUS_METER_SERIAL"),
+            gas_mprn=gas_mprn or os.environ.get("OCTOPUS_GAS_MPRN"),
+            gas_meter_serial=gas_meter_serial or os.environ.get("OCTOPUS_GAS_METER_SERIAL")
         )
 
         self.anthropic = Anthropic(
@@ -242,15 +272,48 @@ class OctopusAgent:
             elif name == "get_tariff_info":
                 tariff = await self.octopus.get_tariff()
                 if not tariff:
-                    return {"error": "Could not fetch tariff information"}
+                    return {"error": "Could not fetch electricity tariff information"}
 
                 return {
+                    "fuel_type": "electricity",
                     "name": tariff.name,
                     "product_code": tariff.product_code,
                     "standing_charge_pence": tariff.standing_charge,
                     "off_peak_rate_pence": tariff.off_peak_rate,
                     "peak_rate_pence": tariff.peak_rate,
                     "off_peak_hours": f"{tariff.off_peak_start} - {tariff.off_peak_end}"
+                }
+
+            elif name == "get_gas_usage":
+                if not self.octopus.gas_mprn:
+                    return {"error": "Gas meter not configured. Set OCTOPUS_GAS_MPRN and OCTOPUS_GAS_METER_SERIAL."}
+
+                days = input_data.get("days", 7)
+                daily = await self.octopus.get_daily_gas_usage(days=days)
+
+                return {
+                    "fuel_type": "gas",
+                    "usage_by_day": {
+                        date: round(kwh, 2) for date, kwh in sorted(daily.items(), reverse=True)
+                    },
+                    "total_kwh": round(sum(daily.values()), 2),
+                    "average_kwh": round(sum(daily.values()) / len(daily), 2) if daily else 0
+                }
+
+            elif name == "get_gas_tariff":
+                if not self.octopus.gas_mprn:
+                    return {"error": "Gas meter not configured. Set OCTOPUS_GAS_MPRN and OCTOPUS_GAS_METER_SERIAL."}
+
+                tariff = await self.octopus.get_gas_tariff()
+                if not tariff:
+                    return {"error": "Could not fetch gas tariff information"}
+
+                return {
+                    "fuel_type": "gas",
+                    "name": tariff.name,
+                    "product_code": tariff.product_code,
+                    "standing_charge_pence": tariff.standing_charge,
+                    "unit_rate_pence": tariff.unit_rate
                 }
 
             else:

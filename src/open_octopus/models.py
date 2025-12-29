@@ -24,6 +24,15 @@ class Consumption:
 
 
 @dataclass
+class GasConsumption:
+    """Half-hourly gas consumption reading."""
+    start: datetime
+    end: datetime
+    kwh: float  # Energy in kWh (converted from m³ if needed)
+    m3: Optional[float] = None  # Volume in cubic meters (SMETS2 meters)
+
+
+@dataclass
 class Tariff:
     """Electricity tariff details."""
     name: str
@@ -118,3 +127,21 @@ class MeterPoint:
     meter_serial: str
     is_smart: bool
     supplier: str
+
+
+@dataclass
+class GasMeterPoint:
+    """Gas meter point."""
+    mprn: str
+    meter_serial: str
+    is_smart: bool
+    supplier: str
+
+
+@dataclass
+class GasTariff:
+    """Gas tariff details."""
+    name: str
+    product_code: str
+    standing_charge: float  # pence/day
+    unit_rate: float  # pence/kWh
