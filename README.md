@@ -1,6 +1,7 @@
 # 🐙 Open Octopus
 
-A beautiful native macOS menu bar app for [Octopus Energy](https://octopus.energy) customers.
+> **Unofficial** open-source macOS menu bar app for [Octopus Energy](https://octopus.energy) customers.
+> Not affiliated with or endorsed by Octopus Energy.
 
 ![Open Octopus Menu Bar App](docs/menubar-screenshot.png)
 
