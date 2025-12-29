@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "open-octopus"
-version = "0.1.0"
+version = "0.2.0"
 description = "Modern async Python client for the Octopus Energy GraphQL API"
 readme = "README.md"
 license = "MIT"
@@ -45,6 +45,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+agent = [
+    "anthropic>=0.30.0",
+]
+menubar = [
+    "rumps>=0.4.0",
+]
+all = [
+    "anthropic>=0.30.0",
+    "rumps>=0.4.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
@@ -55,6 +65,8 @@ dev = [
 
 [project.scripts]
 octopus = "open_octopus.cli:main"
+octopus-ask = "open_octopus.agent:main"
+octopus-menubar = "open_octopus.menubar:main"
 
 [project.urls]
 Homepage = "https://github.com/abracadabra50/open-octopus"

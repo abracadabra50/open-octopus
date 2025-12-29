@@ -6,6 +6,8 @@ Supports the full GraphQL/Kraken API including:
 - Intelligent Octopus dispatch slots
 - Saving Sessions / Free Electricity events
 - Account balance and tariff info
+- macOS menu bar app
+- Claude AI agent for natural language queries
 
 Example:
     >>> from open_octopus import OctopusClient
@@ -17,9 +19,16 @@ Example:
     ...     power = await client.get_live_power()
     ...     if power:
     ...         print(f"Current: {power.demand_kw:.2f} kW")
+
+Natural language queries:
+    >>> from open_octopus import OctopusAgent
+    >>>
+    >>> agent = OctopusAgent()
+    >>> response = await agent.ask("What's my current power usage?")
+    >>> print(response)
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .client import (
     OctopusClient,
@@ -41,6 +50,17 @@ from .models import (
     MeterPoint,
 )
 
+# Optional imports for extras
+try:
+    from .agent import OctopusAgent
+except ImportError:
+    OctopusAgent = None
+
+try:
+    from .menubar import OctopusMenuBar
+except ImportError:
+    OctopusMenuBar = None
+
 __all__ = [
     # Client
     "OctopusClient",
@@ -60,4 +80,7 @@ __all__ = [
     "LivePower",
     "SmartDevice",
     "MeterPoint",
+    # Optional
+    "OctopusAgent",
+    "OctopusMenuBar",
 ]
