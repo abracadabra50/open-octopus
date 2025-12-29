@@ -214,4 +214,4 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 - [Octopus Energy Developer API](https://developer.octopus.energy/)
 - [GraphQL API Documentation](https://developer.octopus.energy/graphql/)
-- [Report Issues](https://github.com/zishanhusain/open-octopus/issues)
+- [Report Issues](https://github.com/abracadabra50/open-octopus/issues)

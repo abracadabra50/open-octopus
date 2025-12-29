@@ -57,10 +57,10 @@ dev = [
 octopus = "open_octopus.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/zishanhusain/open-octopus"
-Documentation = "https://github.com/zishanhusain/open-octopus#readme"
-Repository = "https://github.com/zishanhusain/open-octopus"
-Issues = "https://github.com/zishanhusain/open-octopus/issues"
+Homepage = "https://github.com/abracadabra50/open-octopus"
+Documentation = "https://github.com/abracadabra50/open-octopus#readme"
+Repository = "https://github.com/abracadabra50/open-octopus"
+Issues = "https://github.com/abracadabra50/open-octopus/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/open_octopus"]
