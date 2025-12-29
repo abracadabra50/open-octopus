@@ -3,7 +3,7 @@
 > **Unofficial** open-source macOS menu bar app for [Octopus Energy](https://octopus.energy) customers.
 > Not affiliated with or endorsed by Octopus Energy.
 
-![Open Octopus Menu Bar App](docs/menubar-screenshot.png)
+<img src="docs/menubar-screenshot.png" width="300" alt="Open Octopus Menu Bar App">
 
 ## Features
 
