@@ -7,11 +7,23 @@ Supports features not available in the REST API:
 - 🔌 **Intelligent Octopus dispatch slots**
 - 🎁 **Saving Sessions** / Free Electricity events
 - 💰 **Account balance** and tariff info
+- 🖥️ **macOS menu bar app** for live monitoring
+- 🤖 **Claude AI agent** for natural language queries
 
 ## Installation
 
 ```bash
+# Core library
 pip install open-octopus
+
+# With macOS menu bar app
+pip install 'open-octopus[menubar]'
+
+# With Claude AI agent
+pip install 'open-octopus[agent]'
+
+# Everything
+pip install 'open-octopus[all]'
 ```
 
 ## Quick Start
@@ -160,6 +172,57 @@ if power:
     print(f"Cost: {cost_per_hour:.1f}p/hour")
 ```
 
+## macOS Menu Bar App
+
+Live energy monitoring in your menu bar:
+
+```bash
+# Install with menubar support
+pip install 'open-octopus[menubar]'
+
+# Run
+octopus-menubar
+```
+
+Shows:
+- ⚡ Live power consumption (with Home Mini)
+- 🌙/☀️ Current rate (off-peak/peak)
+- 🔌 Charging status (Intelligent Octopus)
+- 🎁 Saving Sessions alerts
+- 💰 Account balance
+
+## Claude AI Agent
+
+Ask questions about your energy in plain English:
+
+```bash
+# Install with agent support
+pip install 'open-octopus[agent]'
+
+# Set your Anthropic API key
+export ANTHROPIC_API_KEY="sk-ant-xxx"
+
+# Ask questions
+octopus-ask "What's my current power usage?"
+octopus-ask "When is my next charging window?"
+octopus-ask "How much did I use yesterday?"
+octopus-ask "Am I on off-peak rates right now?"
+```
+
+Or use in Python:
+
+```python
+from open_octopus import OctopusAgent
+import asyncio
+
+async def main():
+    agent = OctopusAgent()
+    response = await agent.ask("What's my current rate?")
+    print(response)
+
+asyncio.run(main())
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -170,6 +233,7 @@ if power:
 | `OCTOPUS_ACCOUNT` | Yes | Account number (e.g., A-FB05ED6C) |
 | `OCTOPUS_MPAN` | No | Meter Point Admin Number (for consumption) |
 | `OCTOPUS_METER_SERIAL` | No | Electricity meter serial number |
+| `ANTHROPIC_API_KEY` | For agent | Anthropic API key (for octopus-ask) |
 
 ### Getting Your API Key
 
