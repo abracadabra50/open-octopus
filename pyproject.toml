@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "open-octopus"
 version = "0.3.0"
-description = "Modern async Python client for the Octopus Energy GraphQL API"
+description = "Modern async Python client for the Octopus Energy GraphQL API. Live power, Intelligent dispatches, Saving Sessions & more."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

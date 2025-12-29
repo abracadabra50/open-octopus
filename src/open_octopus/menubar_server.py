@@ -91,10 +91,10 @@ class MenuBarServer:
 
         try:
             async with self.client:
-                # Account balance
+                # Account balance from API: negative = you owe, positive = credit
                 account = await self.client.get_account()
                 result["balance"] = abs(account.balance)
-                result["balance_is_credit"] = account.balance < 0
+                result["balance_is_credit"] = account.balance > 0  # True only if credit
 
                 # Tariff and current rate
                 tariff = await self.client.get_tariff()
