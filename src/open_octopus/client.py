@@ -363,7 +363,6 @@ class OctopusClient:
                     start
                     end
                     delta
-                    source
                 }
             }
             """,
@@ -376,7 +375,7 @@ class OctopusClient:
                 dispatches.append(Dispatch(
                     start=datetime.fromisoformat(d["start"].replace("Z", "+00:00")),
                     end=datetime.fromisoformat(d["end"].replace("Z", "+00:00")),
-                    source=d.get("source", "smart-charge")
+                    source="smart-charge"
                 ))
             except (ValueError, KeyError):
                 continue
