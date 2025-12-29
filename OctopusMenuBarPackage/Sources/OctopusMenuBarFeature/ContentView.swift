@@ -635,7 +635,7 @@ public struct MenuBarView: View {
                             Circle()
                                 .fill(goldColor)
                                 .frame(width: 6, height: 6)
-                            Text("Charging \(providerName)")
+                            Text("Charging via \(providerName)")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(goldColor)
                         }

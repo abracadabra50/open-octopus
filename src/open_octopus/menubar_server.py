@@ -310,6 +310,7 @@ class MenuBarServer:
             "off_peak_rate": None,
             "charger_provider": None,
             "charge_history": [],
+            "half_hourly_usage": [],
         }
 
     async def handle_ask(self, question: str) -> dict[str, Any]:
