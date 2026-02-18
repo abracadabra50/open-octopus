@@ -61,7 +61,7 @@ except ImportError:
 
 try:
     from .menubar import OctopusMenuBar
-except ImportError:
+except Exception:
     OctopusMenuBar = None
 
 __all__ = [
