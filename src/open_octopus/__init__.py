@@ -30,6 +30,8 @@ Natural language queries:
 
 __version__ = "0.3.0"
 
+import sys
+
 from .client import (
     OctopusClient,
     OctopusError,
@@ -59,9 +61,12 @@ try:
 except ImportError:
     OctopusAgent = None
 
-try:
-    from .menubar import OctopusMenuBar
-except ImportError:
+if sys.platform == 'darwin':
+    try:
+        from .menubar import OctopusMenuBar
+    except Exception:  # rumps/PyObjC may be absent or broken
+        OctopusMenuBar = None
+else:
     OctopusMenuBar = None
 
 __all__ = [

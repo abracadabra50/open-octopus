@@ -22,6 +22,10 @@ try:
 except ImportError:
     rumps = None
 
+# rumps is macOS-only (PyObjC/Cocoa). On Windows/Linux it may install but be non-functional.
+_RUMPS_OK = rumps is not None and hasattr(rumps, 'App') and getattr(rumps, 'App') is not None
+BaseApp = rumps.App if _RUMPS_OK else object
+
 from .client import OctopusClient
 from .models import Tariff, DispatchStatus, SavingSession, LivePower
 
@@ -33,7 +37,7 @@ except ImportError:
     HAS_AGENT = False
 
 
-class OctopusMenuBar(rumps.App):
+class OctopusMenuBar(BaseApp):
     """Octopus Energy menu bar app - real-time energy monitoring."""
 
     def __init__(
@@ -45,6 +49,12 @@ class OctopusMenuBar(rumps.App):
         gas_mprn: Optional[str] = None,
         gas_meter_serial: Optional[str] = None,
     ):
+        if not _RUMPS_OK:
+            raise ImportError(
+                'OctopusMenuBar requires macOS + the rumps/PyObjC stack. '
+                'Install with: pip install open-octopus[menubar]'
+            )
+
         super().__init__(
             "⚡ --",
             title="⚡ --",

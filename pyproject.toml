@@ -49,6 +49,7 @@ agent = [
     "anthropic>=0.30.0",
 ]
 menubar = [
+    "rumps>=0.4.0",
     "pyobjc-framework-Cocoa>=10.0",
 ]
 all = [

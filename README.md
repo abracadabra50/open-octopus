@@ -53,6 +53,25 @@ octopus-ask "Compare my usage to last month"
 pip install open-octopus
 ```
 
+### Platform notes
+
+- The **Python API client + CLI/TUI** are cross-platform (macOS, Linux, Windows).
+- The **Menu Bar App** is macOS-only.
+
+### macOS Menu Bar prerequisites (optional)
+
+If you want the Python menu bar integration (\`open_octopus.menubar\`), install the extra:
+
+```bash
+pip install open-octopus[menubar]
+```
+
+This requires:
+- macOS
+- Xcode Command Line Tools: \`xcode-select --install\`
+
+On Windows/Linux, importing \`open_octopus\` will not fail; \`OctopusMenuBar\` is simply unavailable.
+
 ### Configuration
 
 Set your credentials:
