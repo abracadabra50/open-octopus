@@ -697,7 +697,7 @@ class OctopusClient:
         latest = telemetry[-1]
         try:
             return LivePower(
-                demand_watts=int(latest.get("demand") or 0),
+                demand_watts=float(latest.get("demand") or 0),
                 read_at=datetime.fromisoformat(latest["readAt"].replace("Z", "+00:00")),
                 consumption_kwh=latest.get("consumption")
             )

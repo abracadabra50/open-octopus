@@ -101,7 +101,7 @@ class SavingSession:
 @dataclass
 class LivePower:
     """Real-time power consumption from Home Mini."""
-    demand_watts: int
+    demand_watts: float
     read_at: datetime
     consumption_kwh: Optional[float] = None
 
